@@ -18,14 +18,14 @@ const Post = ({ post }) => {
       <div className="flex justify-between items-start mb-4">
         <div className="flex space-x-3 items-center">
           <img 
-            src={post.author.avatar} 
-            alt={post.author.name} 
+            src={post.author?.avatar || `https://ui-avatars.com/api/?name=${post.author?.fristName || 'A'}+${post.author?.lastName || ''}`} 
+            alt={post.author?.fristName || 'User'} 
             className="w-12 h-12 rounded-full object-cover border border-gray-100"
           />
           <div>
-            <h4 className="font-semibold text-gray-900">{post.author.name}</h4>
+            <h4 className="font-semibold text-gray-900">{post.author ? `${post.author.fristName || ''} ${post.author.lastName || ''}`.trim() : 'Anonymous'}</h4>
             <div className="flex items-center text-xs text-gray-500 space-x-1">
-              <span>{formatDistanceToNow(new Date(post.timestamp))} ago</span>
+              <span>{formatDistanceToNow(new Date(post.createdAt || Date.now()))} ago</span>
               <span>•</span>
               {post.isPrivate ? <Lock size={12} /> : <Globe size={12} />}
             </div>
@@ -39,6 +39,13 @@ const Post = ({ post }) => {
       {/* Post Content */}
       <div className="mb-4 text-gray-800 whitespace-pre-wrap">
         {post.content}
+        {post.image && (
+          <img 
+            src={post.image} 
+            alt="Post content" 
+            className="mt-4 rounded-xl w-full max-h-96 object-cover border border-gray-100"
+          />
+        )}
       </div>
 
       {/* Post Stats */}
@@ -50,7 +57,7 @@ const Post = ({ post }) => {
           <span>{likesCount} likes</span>
         </div>
         <div className="flex space-x-3">
-          <span className="cursor-pointer hover:underline">{post.comments.length} comments</span>
+          <span className="cursor-pointer hover:underline">{post.comments?.length || 0} comments</span>
         </div>
       </div>
 

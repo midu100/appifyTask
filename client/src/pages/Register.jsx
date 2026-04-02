@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, UserPlus, Fingerprint } from 'lucide-react';
+import { authServices } from '../api';
+import { toast } from 'react-toastify';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -16,14 +18,22 @@ const Register = () => {
     setFormData({...formData, [e.target.name]: e.target.value});
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      localStorage.setItem('token', 'dummy-jwt-token');
+    
+    try {
+      const res = await authServices.signup(formData);
+      
       setLoading(false);
-      navigate('/feed');
-    }, 1500);
+      toast.success(res.message || "Registration successful!");
+      navigate('/login');
+    } catch (error) {
+      setLoading(false);
+      const errorMsg = error.response?.data?.message || "Something went wrong!";
+      toast.error(errorMsg);
+      console.error(error);
+    }
   };
 
   return (
@@ -87,7 +97,7 @@ const Register = () => {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             <div className="flex gap-4">
               <div className="w-1/2">
                 <label className="block text-sm font-semibold text-slate-700 mb-2">First Name</label>
@@ -98,7 +108,6 @@ const Register = () => {
                   <input
                     type="text"
                     name="firstName"
-                    required
                     className="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-shadow shadow-sm"
                     placeholder="John"
                     value={formData.firstName}
@@ -115,7 +124,6 @@ const Register = () => {
                   <input
                     type="text"
                     name="lastName"
-                    required
                     className="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-shadow shadow-sm"
                     placeholder="Doe"
                     value={formData.lastName}
@@ -134,7 +142,6 @@ const Register = () => {
                 <input
                   type="email"
                   name="email"
-                  required
                   className="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-shadow shadow-sm"
                   placeholder="you@example.com"
                   value={formData.email}

@@ -5,6 +5,8 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Feed from './pages/Feed';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   const myRoute = createBrowserRouter(
@@ -21,7 +23,13 @@ function App() {
     )
   );
 
-  return <RouterProvider router={myRoute} />;
+  return (
+    <>
+       <RouterProvider router={myRoute} />
+       <ToastContainer />
+    
+    </>
+  );
 }
 
 export default App;

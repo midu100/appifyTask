@@ -1,32 +1,37 @@
-import React, { useState } from 'react';
-import { Image, Video, Paperclip, Send } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Image, Video, Paperclip, Send, X } from 'lucide-react';
 
 const CreatePost = ({ onPostCreate }) => {
   const [content, setContent] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
+  const [image, setImage] = useState(null);
+  const fileInputRef = useRef(null);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleImageChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setImage(e.target.files[0]);
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!content.trim()) return;
+    if (!content.trim() && !image) return;
     
     setLoading(true);
-    // Simulate API Call
-    setTimeout(() => {
-      const newPost = {
-        id: Date.now(),
-        author: { name: 'Current User', avatar: 'https://i.pravatar.cc/150?u=current' },
-        content,
-        timestamp: new Date().toISOString(),
-        isPrivate,
-        likes: [],
-        comments: []
-      };
-      onPostCreate(newPost);
-      setContent('');
-      setIsPrivate(false);
-      setLoading(false);
-    }, 500);
+    
+    const formData = new FormData();
+    formData.append('content', content);
+    formData.append('visibility', isPrivate ? 'private' : 'public');
+    if (image) {
+      formData.append('image', image);
+    }
+
+    await onPostCreate(formData);
+    setContent('');
+    setImage(null);
+    setIsPrivate(false);
+    setLoading(false);
   };
 
   return (
@@ -45,10 +50,34 @@ const CreatePost = ({ onPostCreate }) => {
             value={content}
             onChange={(e) => setContent(e.target.value)}
           ></textarea>
+
+          {image && (
+            <div className="relative mt-3 inline-block">
+              <img 
+                src={URL.createObjectURL(image)} 
+                alt="Upload Preview" 
+                className="h-32 rounded-lg object-cover border border-gray-200"
+              />
+              <button 
+                type="button" 
+                onClick={() => setImage(null)}
+                className="absolute -top-2 -right-2 bg-gray-900 text-white p-1 rounded-full hover:bg-gray-700"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          )}
           
           <div className="flex border-t border-gray-100 mt-3 pt-3 justify-between items-center">
             <div className="flex space-x-2">
-              <button type="button" className="p-2 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-full transition-colors">
+              <input 
+                type="file" 
+                accept="image/*" 
+                ref={fileInputRef} 
+                onChange={handleImageChange} 
+                className="hidden" 
+              />
+              <button type="button" onClick={() => fileInputRef.current.click()} className="p-2 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-full transition-colors">
                 <Image size={20} />
               </button>
               <button type="button" className="p-2 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-full transition-colors hidden sm:block">

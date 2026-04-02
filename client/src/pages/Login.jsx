@@ -1,21 +1,40 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, ShieldCheck } from 'lucide-react';
+import { authServices } from '../api';
+import { toast } from 'react-toastify';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState({email:'',password:''});
+ 
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+     if(!formData.email) return toast.error('Enter a valid email');
+     if(!formData.password) return toast.error('Enter password');
+    // Regex for basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error('Please enter a valid email address.');
+      return;
+    }
+
     setLoading(true);
-    setTimeout(() => {
-      localStorage.setItem('token', 'dummy-jwt-token');
+    try {
+      const res = await authServices.login({ email: formData.email, password: formData.password });
+      
       setLoading(false);
+      toast.success(res.message || "Login successful!");
       navigate('/feed');
-    }, 1500);
+    } catch (error) {
+      
+      setLoading(false);
+      const errorMsg = error.response?.data?.message || "Something went wrong!";
+      toast.error(errorMsg);
+      console.error(error);
+    }
   };
 
   return (
@@ -64,7 +83,7 @@ const Login = () => {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6" noValidate>
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Email address</label>
               <div className="relative">
@@ -73,11 +92,10 @@ const Login = () => {
                 </div>
                 <input
                   type="email"
-                  required
                   className="block w-full pl-11 pr-4 py-3.5 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-shadow shadow-sm"
                   placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={formData.email}
+                  onChange={(e) =>setFormData((p)=>({...p, email : e.target.value}))}
                 />
               </div>
             </div>
@@ -90,11 +108,10 @@ const Login = () => {
                 </div>
                 <input
                   type="password"
-                  required
                   className="block w-full pl-11 pr-4 py-3.5 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-shadow shadow-sm"
                   placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={formData.password}
+                  onChange={(e) => setFormData((p)=>({...p, password : e.target.value}))}
                 />
               </div>
             </div>
